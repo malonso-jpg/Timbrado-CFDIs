@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema CFDI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:         #f4f5f7;
+  --surface:    #ffffff;
+  --surface2:   #f0f1f4;
+  --border:     #e2e5eb;
+  --border2:    #d0d4de;
+  --accent:     #0d6efd;
+  --accent-dim: #e8f0fe;
+  --accent-txt: #0a58ca;
+  --green:      #16a34a;
+  --green-dim:  #dcfce7;
+  --red:        #dc2626;
+  --red-dim:    #fee2e2;
+  --amber:      #d97706;
+  --amber-dim:  #fef3c7;
+  --text:       #1a1d23;
+  --text2:      #6b7280;
+  --text3:      #9ca3af;
+  --shadow:     0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:  0 4px 12px rgba(0,0,0,.10);
+  --mono:       'DM Mono', monospace;
+  --sans:       'DM Sans', sans-serif;
+  --r:          8px;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased;}
+
+/* ── Shell ── */
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+
+/* ── Topbar ── */
+.topbar{
+  display:flex;align-items:center;gap:12px;
+  padding:0 24px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  box-shadow:var(--shadow);
+  z-index:10;
+}
+.logo{
+  display:flex;align-items:center;gap:8px;
+}
+.logo-icon{
+  width:32px;height:32px;border-radius:8px;
+  background:var(--accent);
+  display:grid;place-items:center;
+  font-family:var(--mono);font-weight:500;font-size:11px;color:#fff;letter-spacing:-.02em;
+}
+.logo-name{font-weight:700;font-size:15px;letter-spacing:-.02em;color:var(--text);}
+.logo-sub{font-size:11px;color:var(--text2);margin-left:2px;}
+.topbar-pill{
+  margin-left:auto;
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:11px;color:var(--text2);
+  background:var(--surface2);border:1px solid var(--border);
+  padding:4px 12px;border-radius:20px;
+}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+
+/* ── Tabs ── */
+.tabs{
+  display:flex;gap:0;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;
+}
+.tab{
+  display:flex;align-items:center;gap:6px;
+  padding:10px 16px;
+  font-size:13px;font-weight:500;
+  color:var(--text2);cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:color .15s,border-color .15s;
+  user-select:none;white-space:nowrap;
+}
+.tab svg{opacity:.6;transition:opacity .15s;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab.active svg{opacity:1;}
+.tab:hover:not(.active){color:var(--text);}
+
+/* ── Pages ── */
+.pages{flex:1;overflow:hidden;min-height:0;position:relative;}
+.page{display:none;}
+.page.active{display:flex;position:absolute;top:0;left:0;right:0;bottom:0;z-index:1;background:var(--bg);}
+
+/* ════════════════════════════════════
+   PAGE: GENERAR
+════════════════════════════════════ */
+.gen-layout{
+  display:grid;
+  grid-template-columns:360px 1fr;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+}
+.gen-left{
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  padding:20px;
+  gap:16px;
+}
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:16px;
+}
+.card-title{
+  font-size:11px;font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text2);margin-bottom:12px;
+}
+.field-label{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px;}
+.field-input{
+  width:100%;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:6px;
+  color:var(--text);
+  font-family:var(--mono);font-size:11.5px;
+  padding:8px 11px;outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.field-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(13,110,253,.12);}
+.field-input::placeholder{color:var(--text3);}
+.field-hint{font-size:11px;color:var(--text3);margin-top:4px;}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:9px 16px;border-radius:6px;border:none;
+  font-family:var(--sans);font-weight:600;font-size:13px;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent-txt);}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid var(--border2);}
+.btn-outline:hover{background:var(--surface2);color:var(--text);}
+.btn-full{width:100%;}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-danger:hover{opacity:.88;}
+
+/* confirm */
+.confirm-box{
+  display:none;
+  background:var(--accent-dim);
+  border:1px solid rgba(13,110,253,.25);
+  border-radius:6px;padding:12px;
+  animation:fadeUp .18s ease;
+}
+.confirm-box.visible{display:block;}
+.confirm-lbl{font-size:12px;font-weight:600;color:var(--accent-txt);margin-bottom:6px;}
+.confirm-val{
+  display:block;background:var(--surface);border:1px solid var(--border2);
+  border-radius:4px;padding:6px 10px;font-family:var(--mono);font-size:11px;
+  color:var(--text);word-break:break-all;line-height:1.5;margin-bottom:10px;
+}
+.confirm-btns{display:flex;gap:8px;}
+.confirm-btns .btn{flex:1;padding:7px;}
+
+/* sesión list */
+.sess-scroll{flex:1;overflow-y:auto;margin:-4px;}
+.sess-empty{text-align:center;color:var(--text3);font-size:12px;padding:20px 0;}
+.sess-item{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:9px 4px;border-bottom:1px solid var(--border);
+  animation:fadeUp .18s ease;cursor:default;
+}
+.sess-item:last-child{border-bottom:none;}
+.sess-icon{
+  width:22px;height:22px;border-radius:50%;
+  display:grid;place-items:center;flex-shrink:0;margin-top:1px;
+  font-size:10px;
+}
+.sess-icon.ok  {background:var(--green-dim);color:var(--green);}
+.sess-icon.fail{background:var(--red-dim);color:var(--red);}
+.sess-icon.warn{background:var(--amber-dim);color:var(--amber);}
+.sess-info{flex:1;min-width:0;}
+.sess-name{font-family:var(--mono);font-size:10.5px;color:var(--text);word-break:break-all;line-height:1.4;}
+.sess-meta{font-size:10.5px;color:var(--text2);margin-top:2px;}
+.sess-uuid{font-family:var(--mono);font-size:10px;color:var(--text3);}
+
+/* log panel */
+.log-panel{
+  display:flex;flex-direction:column;
+  background:var(--bg);overflow:hidden;
+}
+.log-topbar{
+  display:flex;align-items:center;gap:8px;
+  padding:0 18px;height:44px;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.pulse-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--border2);flex-shrink:0;transition:background .3s;
+}
+.pulse-dot.active{background:var(--green);animation:blink 1s infinite;}
+.log-job{font-family:var(--mono);font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+.result-strip{
+  display:none;
+  padding:10px 18px;flex-shrink:0;
+  font-size:13px;font-weight:500;
+  border-bottom:1px solid var(--border);
+  animation:fadeUp .2s ease;
+}
+.result-strip.ok  {background:var(--green-dim);color:var(--green);border-color:#bbf7d0;}
+.result-strip.fail{background:var(--red-dim);  color:var(--red);  border-color:#fecaca;}
+.result-strip.warn{background:var(--amber-dim);color:var(--amber);border-color:#fde68a;}
+
+.log-console{
+  flex:1;overflow-y:auto;
+  padding:14px 18px;
+  font-family:var(--mono);font-size:12px;line-height:1.8;
+  background:var(--surface);
+}
+.log-ph{color:var(--text3);font-size:12px;text-align:center;padding:32px 0;}
+.log-line{display:flex;gap:12px;padding:1px 4px;border-radius:4px;animation:fadeUp .1s ease;}
+.log-line:hover{background:var(--surface2);}
+.l-ts {color:var(--text3);flex-shrink:0;font-size:11px;}
+.l-lvl{flex-shrink:0;width:44px;text-align:right;font-size:11px;font-weight:500;}
+.l-msg{color:var(--text);white-space:pre-wrap;word-break:break-all;}
+.lvl-INFO {color:#3b82f6;}
+.lvl-OK   {color:var(--green);}
+.lvl-WARN {color:var(--amber);}
+.lvl-ERROR{color:var(--red);}
+
+/* ════════════════════════════════════
+   PAGE: REPROCESAR
+════════════════════════════════════ */
+/* misma estructura que generar, reutiliza .gen-layout, .gen-left, .log-panel */
+
+/* ════════════════════════════════════
+   PAGE: HISTORIAL
+════════════════════════════════════ */
+.hist-page{flex-direction:column;overflow:hidden;height:100%;}
+.hist-toolbar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:12px 20px;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.search-wrap{position:relative;flex:1;max-width:320px;}
+.search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);}
+.search-input{
+  width:100%;padding:7px 10px 7px 30px;
+  background:var(--surface2);border:1px solid var(--border2);border-radius:6px;
+  color:var(--text);font-family:var(--sans);font-size:12.5px;outline:none;
+  transition:border-color .2s;
+}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(13,110,253,.1);}
+.search-input::placeholder{color:var(--text3);}
+.filter-sel{
+  background:var(--surface2);border:1px solid var(--border2);border-radius:6px;
+  color:var(--text2);font-family:var(--sans);font-size:12.5px;
+  padding:7px 10px;outline:none;cursor:pointer;
+}
+.count-badge{
+  font-family:var(--mono);font-size:11px;color:var(--text3);
+  padding:3px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;
+}
+.table-wrap{flex:1;overflow:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{
+  position:sticky;top:0;z-index:1;
+  background:var(--surface2);
+  color:var(--text2);font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  padding:9px 14px;text-align:left;
+  border-bottom:1px solid var(--border2);
+  white-space:nowrap;cursor:pointer;user-select:none;
+}
+thead th:hover{color:var(--text);}
+thead th.sort-asc::after{content:' ↑';}
+thead th.sort-desc::after{content:' ↓';}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer;}
+tbody tr:hover{background:var(--accent-dim);}
+td{padding:8px 14px;vertical-align:middle;font-size:12.5px;}
+td.f-nombre{font-family:var(--mono);font-size:11px;max-width:280px;word-break:break-all;color:var(--text);}
+td.f-rfc   {font-family:var(--mono);font-size:11px;white-space:nowrap;}
+td.f-uuid  {font-family:var(--mono);font-size:10.5px;color:var(--text2);}
+td.f-fecha {font-family:var(--mono);font-size:10.5px;color:var(--text2);white-space:nowrap;}
+td.center  {text-align:center;}
+
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;box-shadow:0 0 0 2px var(--bg);}
+.dot-green{background:var(--green);}
+.dot-red  {background:var(--red);}
+.dot-amber{background:var(--amber);}
+.dot-gray {background:var(--border2);}
+.tbl-empty{text-align:center;color:var(--text3);font-size:12px;padding:40px;}
+
+/* ── Modal ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;animation:fadeIn .18s ease;}
+.modal{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  width:620px;max-width:96vw;max-height:88vh;overflow-y:auto;
+  box-shadow:var(--shadow-md);
+}
+.modal-head{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:18px 20px;border-bottom:1px solid var(--border);
+  position:sticky;top:0;background:var(--surface);z-index:1;
+}
+.modal-head h3{flex:1;font-size:13px;font-weight:700;word-break:break-all;font-family:var(--mono);line-height:1.4;}
+.modal-close{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1;flex-shrink:0;padding:0 2px;transition:color .15s;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:20px;display:flex;flex-direction:column;gap:16px;}
+.m-section{}
+.m-section-title{
+  font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);
+}
+.kv{display:grid;grid-template-columns:140px 1fr;gap:5px 12px;align-items:start;}
+.kv-k{font-size:12px;color:var(--text2);}
+.kv-v{font-family:var(--mono);font-size:12px;color:var(--text);word-break:break-all;}
+.kv-v.c-green{color:var(--green);font-weight:600;}
+.kv-v.c-red  {color:var(--red);  font-weight:600;}
+.kv-v.c-amber{color:var(--amber);font-weight:600;}
+.kv-v.c-accent{color:var(--accent-txt);font-weight:600;}
+.kv-v.c-err  {color:var(--red);  font-size:10.5px;white-space:pre-wrap;}
+.modal-actions{display:flex;gap:8px;padding-top:4px;}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+::-webkit-scrollbar-thumb:hover{background:var(--text3);}
+
+/* ── Dividers ── */
+.divider{height:1px;background:var(--border);margin:4px 0;}
+
+@keyframes fadeUp {from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+@keyframes fadeIn {from{opacity:0;}to{opacity:1;}}
+@keyframes blink  {0%,100%{opacity:1;}50%{opacity:.25;}}
+
+
+th.center, td.center {
+    text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Topbar -->
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-icon">CF</div>
+    <span class="logo-name">Sistema CFDI</span>
+    <span class="logo-sub">Nómina</span>
+  </div>
+  <div class="topbar-pill">
+    <div class="status-dot"></div>
+    <span>localhost:5000</span>
+  </div>
+</header>
+
+<!-- Tabs -->
+<nav class="tabs">
+  <div class="tab active" data-tab="generar">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Generar desde Excel
+  </div>
+  <div class="tab" data-tab="reprocesar">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.44"/></svg>
+    Reprocesar CFDI
+  </div>
+  <div class="tab" data-tab="historial">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    Historial BD
+  </div>
+</nav>
+
+<div class="pages">
+
+<!-- ══ PAGE: GENERAR ══ -->
+<div class="page active gen-layout" id="page-generar">
+  <div class="gen-left">
+
+    <div>
+      <p class="card-title">Archivo Excel</p>
+      <p class="field-label">Seleccionar archivo .xlsx</p>
+      <label id="gen-filelabel" style="
+        display:flex;align-items:center;gap:10px;
+        border:1px dashed var(--border2);border-radius:var(--r);
+        padding:10px 14px;cursor:pointer;background:var(--surface2);
+        transition:border-color .15s;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span id="gen-filename" style="color:var(--text2);font-size:13px;">Haz clic para elegir archivo…</span>
+        <input type="file" id="gen-excel-file" accept=".xlsx,.xls" style="display:none;">
+      </label>
+      <p class="field-hint">El archivo se guardará en el servidor según el ambiente seleccionado</p>
+
+      <p class="field-label" style="margin-top:14px;">Ambiente</p>
+      <div style="display:flex;gap:8px;">
+        <label id="lbl-test" style="
+          flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+          border:2px solid var(--accent);border-radius:var(--r);padding:8px 12px;
+          cursor:pointer;background:var(--accent-dim);font-weight:600;font-size:13px;color:var(--accent-txt);
+          transition:all .15s;">
+          <input type="radio" name="ambiente" value="TEST" checked style="display:none;"> TEST
+        </label>
+        <label id="lbl-prod" style="
+          flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+          border:2px solid var(--border2);border-radius:var(--r);padding:8px 12px;
+          cursor:pointer;background:var(--surface2);font-weight:600;font-size:13px;color:var(--text2);
+          transition:all .15s;">
+          <input type="radio" name="ambiente" value="PROD" style="display:none;"> PROD
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <button class="btn btn-primary btn-full" id="btn-gen-revisar">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+        Revisar y confirmar
+      </button>
+
+      <div class="confirm-box" id="gen-confirm" style="margin-top:10px;">
+        <p class="confirm-lbl">¿Iniciar generación completa?</p>
+        <p style="font-size:11px;color:var(--text2);margin-bottom:8px;">
+          Se generarán XMLs desde el Excel, luego se sellarán y timbrarán todos.
+        </p>
+        <code class="confirm-val" id="gen-confirm-val"></code>
+        <div class="confirm-btns">
+          <button class="btn btn-outline" id="btn-gen-cancel">Cancelar</button>
+          <button class="btn btn-primary" id="btn-gen-ok">Sí, procesar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <p class="card-title" style="margin-bottom:0;">Procesados en esta sesión</p>
+    <div class="sess-scroll" id="gen-sess">
+      <p class="sess-empty" id="gen-sess-empty">Sin registros aún</p>
+    </div>
+  </div>
+
+  <div class="log-panel">
+    <div class="log-topbar">
+      <div class="pulse-dot" id="gen-pulse"></div>
+      <span class="log-job" id="gen-log-label">Esperando...</span>
+      <button class="btn btn-outline" style="margin-left:auto;font-size:11px;padding:4px 10px;" id="btn-gen-clear">limpiar</button>
+    </div>
+    <div class="result-strip" id="gen-result"></div>
+    <div class="log-console" id="gen-console">
+      <p class="log-ph">Los logs aparecerán aquí al iniciar la generación.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE: REPROCESAR ══ -->
+<div class="page gen-layout" id="page-reprocesar">
+  <div class="gen-left">
+
+    <div>
+      <p class="card-title">CFDI a reprocesar</p>
+      <p class="field-label">Nombre de archivo</p>
+      <textarea id="rep-input" class="field-input" style="height:64px;resize:none;"
+        spellcheck="false"
+        placeholder="FTO210226USA|CFDI_MOVY840112JH5_SEM11-1_....XML"></textarea>
+      <p class="field-hint">Nombre exacto tal como aparece en la BD</p>
+    </div>
+
+    <div>
+      <button class="btn btn-primary btn-full" id="btn-rep-revisar">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+        Revisar y confirmar
+      </button>
+
+      <div class="confirm-box" id="rep-confirm" style="margin-top:10px;">
+        <p class="confirm-lbl">¿Confirmas el reprocesamiento?</p>
+        <code class="confirm-val" id="rep-confirm-val"></code>
+        <div class="confirm-btns">
+          <button class="btn btn-outline" id="btn-rep-cancel">Cancelar</button>
+          <button class="btn btn-primary" id="btn-rep-ok">Sí, reprocesar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <p class="card-title" style="margin-bottom:0;">Procesados en esta sesión</p>
+    <div class="sess-scroll" id="rep-sess">
+      <p class="sess-empty" id="rep-sess-empty">Sin registros aún</p>
+    </div>
+  </div>
+
+  <div class="log-panel">
+    <div class="log-topbar">
+      <div class="pulse-dot" id="rep-pulse"></div>
+      <span class="log-job" id="rep-log-label">Esperando...</span>
+      <button class="btn btn-outline" style="margin-left:auto;font-size:11px;padding:4px 10px;" id="btn-rep-clear">limpiar</button>
+    </div>
+    <div class="result-strip" id="rep-result"></div>
+    <div class="log-console" id="rep-console">
+      <p class="log-ph">Los logs aparecerán aquí al iniciar un reprocesamiento.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE: HISTORIAL ══ -->
+<div class="page hist-page" id="page-historial">
+  <div class="hist-toolbar">
+    <div class="search-wrap">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="hist-search" class="search-input" placeholder="Buscar por nombre, RFC, UUID...">
+    </div>
+    <select id="hist-filter" class="filter-sel">
+      <option value="">Todos</option>
+      <option value="timbrado">Timbrados</option>
+      <option value="no_timbrado">Sin timbrar</option>
+      <option value="cancelado">Cancelados</option>
+      <option value="error">Con error</option>
+    </select>
+    <span class="count-badge" id="hist-count">0 registros</span>
+    <button class="btn btn-outline" id="btn-hist-refresh" style="margin-left:auto;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      Actualizar
+    </button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-col="nombre_archivo">Archivo</th>
+          <th data-col="rfc_emisor">RFC Emisor</th>
+          <th data-col="rfc_receptor">RFC Receptor</th>
+          <th data-col="ambiente" class="center">Ambiente</th>
+          <th data-col="archivo_origen">Excel origen</th>
+          <th data-col="generado"  class="center">GEN</th>
+          <th data-col="sellado"   class="center">SELL</th>
+          <th data-col="timbrado"  class="center">TIMB</th>
+          <th data-col="cancelado" class="center">CANC</th>
+          <th data-col="uuid">UUID</th>
+          <th data-col="ultima_actualizacion">Actualizado</th>
+        </tr>
+      </thead>
+      <tbody id="hist-tbody">
+        <tr><td colspan="11" class="tbl-empty">Abre esta pestaña para cargar datos.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- /pages -->
+</div><!-- /app -->
+
+<!-- ══ Modal PROD Warning ══ -->
+<div class="modal-bg" id="prod-warn-bg">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-head" style="background:#fef2f2;border-bottom:1px solid #fecaca;">
+      <h3 style="color:#dc2626;display:flex;align-items:center;gap:8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Reprocesar en PRODUCCIÓN
+      </h3>
+      <button class="modal-close" id="prod-warn-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:12px 14px;margin-bottom:14px;">
+        <p style="font-size:13px;color:#991b1b;line-height:1.6;">
+          Estás a punto de reprocesar un CFDI en el ambiente de <strong>PRODUCCIÓN</strong>. Esta acción enviará el comprobante al PAC real y generará un timbre fiscal válido.
+        </p>
+      </div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Archivo a reprocesar:</p>
+      <code id="prod-warn-nombre" style="display:block;font-size:11.5px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:8px 10px;word-break:break-all;margin-bottom:16px;"></code>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:6px;">Escribe <strong>PRODUCCION</strong> para confirmar:</p>
+      <input type="text" id="prod-warn-input" class="field-input" placeholder="PRODUCCION"
+        style="font-family:var(--mono);letter-spacing:.05em;">
+    </div>
+    <div class="modal-actions" style="padding:0 20px 18px;">
+      <button class="btn btn-outline" id="prod-warn-cancel" style="flex:1;">Cancelar</button>
+      <button class="btn" id="prod-warn-ok" disabled
+        style="flex:1;background:#dc2626;color:#fff;border-color:#dc2626;opacity:.5;cursor:not-allowed;">
+        Confirmar reproceso
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Modal ══ -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-title">Detalle CFDI</h3>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:5000';
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('page-' + tab.dataset.tab).classList.add('active');
+    if (tab.dataset.tab === 'historial') loadHistorial();
+  });
+});
+
+// ══════════════════════════════════════════════════════════════
+// SSE helper genérico
+// ══════════════════════════════════════════════════════════════
+function startSSE({ jobId, pulse, label, console: con, resultEl, onDone }) {
+  pulse.classList.add('active');
+  let sse = new EventSource(API + '/api/logs/' + jobId);
+  sse.onmessage = e => {
+    const ev = JSON.parse(e.data);
+    if (ev.nivel === 'PING') return;
+    if (ev.nivel === 'DONE') {
+      pulse.classList.remove('active');
+      label.textContent = 'Finalizado';
+      sse.close();
+      onDone(ev.resultado);
+      return;
+    }
+    appendLog(con, ev.nivel, ev.msg, ev.ts);
+  };
+  sse.onerror = () => { pulse.classList.remove('active'); sse.close(); appendLog(con,'ERROR','Conexión SSE interrumpida.'); };
+  return sse;
+}
+
+function appendLog(con, nivel, msg, ts) {
+  con.querySelector('.log-ph')?.remove();
+  const t = ts || now();
+  const d = document.createElement('div');
+  d.className = 'log-line';
+  d.innerHTML = `<span class="l-ts">${t}</span><span class="l-lvl lvl-${nivel}">${nivel}</span><span class="l-msg">${esc(msg)}</span>`;
+  con.appendChild(d);
+  con.scrollTop = con.scrollHeight;
+}
+
+function clearLog(con, label, pulse, resultEl) {
+  con.innerHTML = '<p class="log-ph">Los logs aparecerán aquí al iniciar el proceso.</p>';
+  resultEl.style.display = 'none';
+  resultEl.className = 'result-strip';
+  label.textContent = 'Procesando...';
+  pulse.classList.remove('active');
+}
+
+function showResult(el, tipo, msg) {
+  el.style.display = 'block';
+  el.className = 'result-strip ' + tipo;
+  el.textContent = msg;
+}
+
+function addSessItem(container, emptyId, iconCls, title, meta, uuid) {
+  document.getElementById(emptyId)?.remove();
+  const d = document.createElement('div');
+  d.className = 'sess-item';
+  d.innerHTML = `
+    <div class="sess-icon ${iconCls}">${iconCls === 'ok' ? '✓' : iconCls === 'warn' ? '!' : '✗'}</div>
+    <div class="sess-info">
+      <div class="sess-name">${esc(title)}</div>
+      <div class="sess-meta">${esc(meta)}</div>
+      ${uuid ? `<div class="sess-uuid">${uuid}</div>` : ''}
+    </div>`;
+  container.insertBefore(d, container.firstChild);
+}
+
+// ══════════════════════════════════════════════════════════════
+// PAGE: GENERAR
+// ══════════════════════════════════════════════════════════════
+const genFileInput = document.getElementById('gen-excel-file');
+const genFilename  = document.getElementById('gen-filename');
+const genFilelabel = document.getElementById('gen-filelabel');
+const genConfirm  = document.getElementById('gen-confirm');
+const genConfVal  = document.getElementById('gen-confirm-val');
+const genPulse    = document.getElementById('gen-pulse');
+const genLabel    = document.getElementById('gen-log-label');
+const genConsole  = document.getElementById('gen-console');
+const genResult   = document.getElementById('gen-result');
+const genSess     = document.getElementById('gen-sess');
+
+// Selector de ambiente
+document.querySelectorAll('input[name="ambiente"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    const isProd = radio.value === 'PROD';
+    document.getElementById('lbl-test').style.cssText = `
+      flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+      border:2px solid ${!isProd ? 'var(--accent)' : 'var(--border2)'};border-radius:var(--r);
+      padding:8px 12px;cursor:pointer;
+      background:${!isProd ? 'var(--accent-dim)' : 'var(--surface2)'};
+      font-weight:600;font-size:13px;
+      color:${!isProd ? 'var(--accent-txt)' : 'var(--text2)'};transition:all .15s;`;
+    document.getElementById('lbl-prod').style.cssText = `
+      flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+      border:2px solid ${isProd ? '#f59e0b' : 'var(--border2)'};border-radius:var(--r);
+      padding:8px 12px;cursor:pointer;
+      background:${isProd ? '#fef3c7' : 'var(--surface2)'};
+      font-weight:600;font-size:13px;
+      color:${isProd ? '#b45309' : 'var(--text2)'};transition:all .15s;`;
+  });
+});
+
+// File picker
+genFileInput.addEventListener('change', () => {
+  const file = genFileInput.files[0];
+  if (file) {
+    genFilename.textContent = file.name;
+    genFilename.style.color = 'var(--text)';
+    genFilelabel.style.borderColor = 'var(--accent)';
+  }
+});
+
+document.getElementById('btn-gen-revisar').addEventListener('click', () => {
+  const file = genFileInput.files[0];
+  if (!file) { genFilelabel.style.borderColor = 'var(--red)'; return; }
+  const amb = document.querySelector('input[name="ambiente"]:checked').value;
+  genConfVal.textContent = `${file.name}  [${amb}]`;
+  genConfirm.classList.add('visible');
+  document.getElementById('btn-gen-revisar').disabled = true;
+});
+document.getElementById('btn-gen-cancel').addEventListener('click', () => {
+  genConfirm.classList.remove('visible');
+  document.getElementById('btn-gen-revisar').disabled = false;
+});
+document.getElementById('btn-gen-ok').addEventListener('click', async () => {
+  const file = genFileInput.files[0];
+  const amb  = document.querySelector('input[name="ambiente"]:checked').value;
+  genConfirm.classList.remove('visible');
+  document.getElementById('btn-gen-revisar').disabled = false;
+  clearLog(genConsole, genLabel, genPulse, genResult);
+  genLabel.textContent = `${file.name} [${amb}]`;
+
+  try {
+    const fd = new FormData();
+    fd.append('excel', file);
+    fd.append('ambiente', amb);
+
+    const res = await fetch(API + '/api/generar', { method: 'POST', body: fd });
+    const json = await res.json();
+    if (json.error) { appendLog(genConsole,'ERROR',json.error); return; }
+    startSSE({
+      jobId: json.job_id, pulse: genPulse, label: genLabel,
+      console: genConsole, resultEl: genResult,
+      onDone: res => {
+        const ok   = res.ok   ?? 0;
+        const fail = res.fail ?? 0;
+        const tot  = res.total ?? 0;
+        if (fail === 0 && ok > 0) {
+          showResult(genResult, 'ok', `✓  ${ok} CFDI(s) timbrados correctamente`);
+          addSessItem(genSess,'gen-sess-empty','ok', `${file.name} [${amb}]`, `${ok}/${tot} OK`, null);
+        } else if (ok === 0) {
+          showResult(genResult, 'fail', `✗  Proceso falló — ${fail} error(es)`);
+          addSessItem(genSess,'gen-sess-empty','fail', `${file.name} [${amb}]`, `0/${tot} OK`, null);
+        } else {
+          showResult(genResult, 'warn', `⚠  ${ok} OK / ${fail} con error de ${tot} total`);
+          addSessItem(genSess,'gen-sess-empty','warn', `${file.name} [${amb}]`, `${ok}/${tot} OK`, null);
+        }
+      }
+    });
+  } catch(e) { appendLog(genConsole,'ERROR','No se pudo conectar: '+e.message); }
+});
+document.getElementById('btn-gen-clear').addEventListener('click', () =>
+  clearLog(genConsole, genLabel, genPulse, genResult));
+
+// ══════════════════════════════════════════════════════════════
+// PAGE: REPROCESAR
+// ══════════════════════════════════════════════════════════════
+const repInput   = document.getElementById('rep-input');
+const repConfirm = document.getElementById('rep-confirm');
+const repConfVal = document.getElementById('rep-confirm-val');
+const repPulse   = document.getElementById('rep-pulse');
+const repLabel   = document.getElementById('rep-log-label');
+const repConsole = document.getElementById('rep-console');
+const repResult  = document.getElementById('rep-result');
+const repSess    = document.getElementById('rep-sess');
+
+document.getElementById('btn-rep-revisar').addEventListener('click', async () => {
+  const v = repInput.value.trim();
+  if (!v) { repInput.focus(); return; }
+
+  // Consultar BD para saber el ambiente del archivo
+  let ambiente = 'TEST';
+  try {
+    const r = await fetch(`${API}/api/cfdi/${encodeURIComponent(v)}`);
+    if (r.ok) {
+      const data = await r.json();
+      ambiente = (data.ambiente || 'TEST').toUpperCase();
+    }
+  } catch(_) {}
+
+  if (ambiente === 'PROD') {
+    // Mostrar modal de advertencia PROD
+    document.getElementById('prod-warn-nombre').textContent = v;
+    document.getElementById('prod-warn-input').value = '';
+    document.getElementById('prod-warn-ok').disabled = true;
+    document.getElementById('prod-warn-ok').style.opacity = '.5';
+    document.getElementById('prod-warn-ok').style.cursor = 'not-allowed';
+    document.getElementById('prod-warn-bg').classList.add('open');
+  } else {
+    repConfVal.textContent = v;
+    repConfirm.classList.add('visible');
+    document.getElementById('btn-rep-revisar').disabled = true;
+  }
+});
+
+// Modal PROD — habilitar botón solo cuando escribe "PRODUCCION"
+document.getElementById('prod-warn-input').addEventListener('input', function() {
+  const ok = this.value.trim() === 'PRODUCCION';
+  const btn = document.getElementById('prod-warn-ok');
+  btn.disabled = !ok;
+  btn.style.opacity = ok ? '1' : '.5';
+  btn.style.cursor  = ok ? 'pointer' : 'not-allowed';
+});
+
+document.getElementById('prod-warn-close').addEventListener('click', () =>
+  document.getElementById('prod-warn-bg').classList.remove('open'));
+document.getElementById('prod-warn-cancel').addEventListener('click', () =>
+  document.getElementById('prod-warn-bg').classList.remove('open'));
+
+document.getElementById('prod-warn-ok').addEventListener('click', () => {
+  if (document.getElementById('prod-warn-input').value.trim() !== 'PRODUCCION') return;
+  document.getElementById('prod-warn-bg').classList.remove('open');
+  // Navegar a la pestaña reprocesar para que se vean los logs
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-tab="reprocesar"]').classList.add('active');
+  document.getElementById('page-reprocesar').classList.add('active');
+  ejecutarReproceso(repInput.value.trim());
+});
+
+document.getElementById('btn-rep-cancel').addEventListener('click', () => {
+  repConfirm.classList.remove('visible');
+  document.getElementById('btn-rep-revisar').disabled = false;
+});
+document.getElementById('btn-rep-ok').addEventListener('click', () => {
+  const nombre = repInput.value.trim();
+  repConfirm.classList.remove('visible');
+  document.getElementById('btn-rep-revisar').disabled = false;
+  ejecutarReproceso(nombre);
+});
+
+async function ejecutarReproceso(nombre) {
+  repInput.value = '';
+  clearLog(repConsole, repLabel, repPulse, repResult);
+  repLabel.textContent = nombre.length > 55 ? nombre.slice(0,55)+'...' : nombre;
+
+  try {
+    const res = await fetch(API + '/api/reprocesar', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ nombre_archivo: nombre })
+    });
+    const json = await res.json();
+    if (json.error) { appendLog(repConsole,'ERROR',json.error); return; }
+    startSSE({
+      jobId: json.job_id, pulse: repPulse, label: repLabel,
+      console: repConsole, resultEl: repResult,
+      onDone: res => {
+        if (res.codigo === 'YA_TIMBRADO') {
+          showResult(repResult, 'warn', `Ya estaba timbrado — UUID: ${res.uuid}`);
+          addSessItem(repSess,'rep-sess-empty','warn', nombre, 'Ya timbrado', res.uuid);
+        } else if (res.ok) {
+          showResult(repResult, 'ok', `✓ Timbrado exitoso — UUID: ${res.uuid}`);
+          addSessItem(repSess,'rep-sess-empty','ok', nombre, 'Timbrado OK', res.uuid);
+        } else {
+          const cod = res.codigo ? ` [${res.codigo}]` : '';
+          showResult(repResult, 'fail', `✗ Falló${cod}${res.mensaje ? ' — '+res.mensaje : ''}`);
+          addSessItem(repSess,'rep-sess-empty','fail', nombre, 'Falló'+cod, null);
+        }
+      }
+    });
+  } catch(e) { appendLog(repConsole,'ERROR','No se pudo conectar: '+e.message); }
+}
+document.getElementById('btn-rep-clear').addEventListener('click', () =>
+  clearLog(repConsole, repLabel, repPulse, repResult));
+
+// ══════════════════════════════════════════════════════════════
+// PAGE: HISTORIAL
+// ══════════════════════════════════════════════════════════════
+let allRows = [], sortCol = 'ultima_actualizacion', sortDir = 'desc';
+const $tbody  = document.getElementById('hist-tbody');
+const $search = document.getElementById('hist-search');
+const $filter = document.getElementById('hist-filter');
+const $count  = document.getElementById('hist-count');
+
+document.getElementById('btn-hist-refresh').addEventListener('click', loadHistorial);
+$search.addEventListener('input',  renderTabla);
+$filter.addEventListener('change', renderTabla);
+$filter.addEventListener('change', renderTabla);
+document.querySelectorAll('thead th[data-col]').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.col;
+    sortDir = sortCol === col ? (sortDir === 'asc' ? 'desc' : 'asc') : 'asc';
+    sortCol = col;
+    document.querySelectorAll('thead th').forEach(t => t.classList.remove('sort-asc','sort-desc'));
+    th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+    renderTabla();
+  });
+});
+
+async function loadHistorial() {
+  $tbody.innerHTML = '<tr><td colspan="11" class="tbl-empty">Cargando...</td></tr>';
+  try {
+    const data = await fetch(API+'/api/historial').then(r => r.json());
+    if (data.error) throw new Error(data.error);
+    allRows = data;
+    renderTabla();
+  } catch(e) {
+    $tbody.innerHTML = `<tr><td colspan="11" class="tbl-empty" style="color:var(--red)">Error al cargar: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+function renderTabla() {
+  const q = $search.value.trim().toLowerCase();
+  const f = $filter.value;
+
+  let rows = allRows.filter(r => {
+    if (q) {
+      const hay = [r.nombre_archivo,r.rfc_emisor,r.rfc_receptor,r.uuid,r.mensaje_pac, r.ambiente]
+        .map(v => (v||'').toLowerCase()).join(' ');
+      if (!hay.includes(q)) return false;
+    }
+    if (f === 'timbrado')    return r.timbrado && !r.cancelado;
+    if (f === 'no_timbrado') return !r.timbrado;
+    if (f === 'cancelado')   return r.cancelado;
+    if (f === 'error')       return r.error_sellado || (r.mensaje_pac && r.codigo_pac !== '10');
+    return true;
+  });
+
+  rows.sort((a, b) => {
+    let va = a[sortCol] ?? '', vb = b[sortCol] ?? '';
+    if (typeof va === 'boolean') va = va ? 1 : 0;
+    if (typeof vb === 'boolean') vb = vb ? 1 : 0;
+    const c = String(va).localeCompare(String(vb), 'es', {numeric: true});
+    return sortDir === 'asc' ? c : -c;
+  });
+
+  $count.textContent = `${rows.length} registro${rows.length !== 1 ? 's' : ''}`;
+
+  if (!rows.length) {
+    $tbody.innerHTML = '<tr><td colspan="11" class="tbl-empty">Sin resultados</td></tr>';
+    return;
+  }
+
+  $tbody.innerHTML = rows.map(r =>
+    `<tr data-nombre="${esc(r.nombre_archivo)}">
+      <td class="f-nombre">${esc(r.nombre_archivo||'')}</td>
+      <td class="f-rfc">${esc(r.rfc_emisor||'')}</td>
+      <td class="f-rfc">${esc(r.rfc_receptor||'')}</td>
+      <td class="center"><span style="
+        font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;
+        background:${r.ambiente==='PROD' ? '#fef3c7' : '#e8f0fe'};
+        color:${r.ambiente==='PROD' ? '#b45309' : 'var(--accent-txt)'};
+        border:1px solid ${r.ambiente==='PROD' ? '#fcd34d' : '#bfdbfe'};">
+        ${esc(r.ambiente||'TEST')}</span></td>
+      <td class="f-rfc">${esc(r.archivo_origen||'—')}</td>
+      <td class="center">${bdot(r.generado)}</td>
+      <td class="center">${bdot(r.sellado)}</td>
+      <td class="center">${bdot(r.timbrado)}</td>
+      <td class="center">${bdot(r.cancelado,'amber')}</td>
+      <td class="f-uuid">${esc(r.uuid||'—')}</td>
+      <td class="f-fecha">${esc(r.ultima_actualizacion||'')}</td>
+    </tr>`
+  ).join('');
+
+  $tbody.querySelectorAll('tr').forEach(tr => {
+    tr.addEventListener('click', () => {
+      const r = rows.find(x => x.nombre_archivo === tr.dataset.nombre);
+      console.log(r);
+      
+      if (r) openModal(r);
+    });
+  });
+}
+
+function bdot(val, trueColor) {
+  if (val === true)  return `<span class="dot dot-${trueColor||'green'}"></span>`;
+  if (val === false) return `<span class="dot dot-gray"></span>`;
+  return `<span class="dot dot-gray"></span>`;
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+const $modalBg   = document.getElementById('modal-bg');
+const $modalTitle= document.getElementById('modal-title');
+const $modalBody = document.getElementById('modal-body');
+
+document.getElementById('modal-close').addEventListener('click', () => $modalBg.classList.remove('open'));
+$modalBg.addEventListener('click', e => { if (e.target === $modalBg) $modalBg.classList.remove('open'); });
+
+function kv(k, v, cls='') {
+  return `<span class="kv-k">${k}</span><span class="kv-v ${cls}">${esc(String(v??'—'))}</span>`;
+}
+function boolKv(k, v, okTxt='Sí', noTxt='No') {
+  return `<span class="kv-k">${k}</span><span class="kv-v ${v ? 'c-green' : 'c-red'}">${v ? okTxt : noTxt}</span>`;
+}
+
+function openModal(r) {
+  $modalTitle.textContent = r.nombre_archivo;
+  $modalBody.innerHTML = `
+    <div class="m-section">
+      <p class="m-section-title">Identidad</p>
+      <div class="kv">
+        ${kv('ID', r.id)}
+        ${kv('RFC Emisor', r.rfc_emisor)}
+        ${kv('RFC Receptor', r.rfc_receptor)}
+        ${kv('Folio', r.folio)}
+        ${kv('UUID', r.uuid, r.uuid ? 'c-green' : '')}
+        ${kv('Excel origen', r.archivo_origen)}
+        ${kv('Ambiente', r.ambiente, r.ambiente === 'PROD' ? 'c-amber' : 'c-accent')}
+      </div>
+    </div>
+    <div class="m-section">
+      <p class="m-section-title">Etapas</p>
+      <div class="kv">
+        ${boolKv('Generado', r.generado)}
+        ${kv('Fecha generado', r.fecha_generado)}
+        ${boolKv('Sellado', r.sellado)}
+        ${kv('Fecha sellado', r.fecha_sellado)}
+        ${boolKv('Timbrado', r.timbrado)}
+        ${kv('Fecha timbrado', r.fecha_timbrado)}
+        ${boolKv('Cancelado', r.cancelado, 'Sí ⚠', 'No')}
+        ${kv('Fecha cancelación', r.fecha_cancelacion)}
+      </div>
+    </div>
+    <div class="m-section">
+      <p class="m-section-title">Respuesta PAC</p>
+      <div class="kv">
+        ${kv('Código PAC', r.codigo_pac, r.codigo_pac === '10' ? 'c-green' : r.codigo_pac ? 'c-red' : '')}
+        ${kv('Mensaje PAC', r.mensaje_pac)}
+      </div>
+    </div>
+    <div class="m-section">
+      <p class="m-section-title">Rutas</p>
+      <div class="kv">
+        ${kv('XML original', r.ruta_xml)}
+        ${kv('XML sellado', r.ruta_sellado)}
+        ${kv('XML timbrado', r.ruta_xml_timbrado)}
+      </div>
+    </div>
+    ${r.error_sellado ? `
+    <div class="m-section">
+      <p class="m-section-title">Error de sellado</p>
+      <span class="kv-v c-err">${esc(r.error_sellado)}</span>
+    </div>` : ''}
+    <div class="modal-actions">
+      ${!r.timbrado
+        ? `<button class="btn btn-primary" onclick="reprocesarDesdeModal('${esc(r.nombre_archivo)}')">
+             ↩ Reprocesar este CFDI
+           </button>`
+        : ''}
+    </div>`;
+  $modalBg.classList.add('open');
+}
+
+function reprocesarDesdeModal(nombre) {
+  $modalBg.classList.remove('open');
+
+  // Buscar el registro en allRows para saber el ambiente
+  const row = allRows.find(x => x.nombre_archivo === nombre);
+  const ambiente = (row?.ambiente || 'TEST').toUpperCase();
+
+  if (ambiente === 'PROD') {
+    document.getElementById('prod-warn-nombre').textContent = nombre;
+    document.getElementById('prod-warn-input').value = '';
+    document.getElementById('prod-warn-ok').disabled = true;
+    document.getElementById('prod-warn-ok').style.opacity = '.5';
+    document.getElementById('prod-warn-ok').style.cursor = 'not-allowed';
+    // Guardar el nombre en el input para que ejecutarReproceso lo tome
+    repInput.value = nombre;
+    document.getElementById('prod-warn-bg').classList.add('open');
+  } else {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelector('[data-tab="reprocesar"]').classList.add('active');
+    document.getElementById('page-reprocesar').classList.add('active');
+    document.getElementById('rep-input').value = nombre;
+    document.getElementById('rep-input').focus();
+  }
+}
+
+// ── Util ──────────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function now() {
+  return new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+</script>
+</body>
+</html>
